@@ -19,14 +19,73 @@ class Person
 
 end
 
-bob = Person.new('Robert')
-p bob.name                  # => 'Robert'
-p bob.first_name            # => 'Robert'
-p bob.last_name             # => ''
-bob.last_name = 'Smith'
-p bob.name                  # => 'Robert Smith'
+# bob = Person.new('Robert')
+# p bob.name                  # => 'Robert'
+# p bob.first_name            # => 'Robert'
+# p bob.last_name             # => ''
+# bob.last_name = 'Smith'
+# p bob.name                  # => 'Robert Smith'
 
-bob.name = "John Adams"
-p bob.first_name            # => 'John'
-p bob.last_name             # => 'Adams'
+# bob.name = "John Adams"
+# p bob.first_name            # => 'John'
+# p bob.last_name             # => 'Adams'
+
+class HousePet
+  def run
+    'running!'
+  end
+  def jump
+    'jumping!'
+  end
+end
+
+
+
+class Dog < HousePet
+  def speak
+    'bark!'
+  end
+  def swim
+    'swimming!'
+  end
+  def fetch
+    'fetching!'
+  end
+end
+
+class Cat < HousePet
+  def speak
+    'meow!'
+  end
+end
+
+# teddy = Dog.new
+# puts teddy.speak           # => "bark!"
+# puts teddy.swim    
+
+class BullDog < Dog
+  def swim
+    "can't swim"
+  end
+end
+
+# rex = BullDog.new
+# puts rex.speak
+# puts rex.swim
+# puts rex.jump
+# puts rex.fetch
+
+# cindy = Cat.new
+# puts cindy.run
+# puts cindy.jump
+# puts cindy.speak
+
+# p BullDog.ancestors
+
+
+# method lookup path
+# Bulldog < Dog < HousePet < Object < Kernel < BasicObject
+# Cat < HousePet < Object < Kernel < BasicObject
+
+
 
