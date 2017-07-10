@@ -35,7 +35,7 @@ class RPSGame
   end
 
   def display_welcome_message
-    puts "Welcome to Rock, Paper, Scissors!"
+    puts "Welcome to Rock, Paper, Scissors #{player.name}!"
   end
 
   def display_goodbye_message
@@ -43,35 +43,68 @@ class RPSGame
   end
 
   def display_winner
+    puts "#{player.name} chose #{player.move}"
+    puts "#{computer.name} chose #{computer.move}"
     if player.move == 'rock' && computer.move == 'scissors' ||
        player.move == 'scissors' && computer.move == 'paper' ||
        player.move == 'paper' && computer.move == 'rock'
 
-       puts "You Win!"
+       puts "#{player.name} Won!"
     elsif computer.move == 'rock' && player.move == 'scissors' ||
           computer.move == 'scissors' && player.move == 'paper' ||
           computer.move == 'paper' && player.move == 'rock'
-        puts "Computer Wins!"
+        puts "#{computer.name} Won!"
     else
         puts "Its a Tie."
     end
   end
 
+  def play_again?
+    answer = nil
+    loop do
+      puts "Would you like to play again? (y/n)"
+      answer = gets.chomp.downcase
+      break if %(y n).include?(answer)
+      puts "Invalid entry. Must be y or n."
+    end
+    return true if answer == 'y'
+    return false
+  end
+
   def play
     display_welcome_message
-    player.choose
-    computer.choose
-    display_winner
+    loop do
+      player.choose
+      computer.choose
+      display_winner
+      break unless play_again?
+    end
     display_goodbye_message
   end
 end
 
 class Player
-  attr_accessor :move
+  attr_accessor :move, :name
   attr_reader :player_type
   def initialize(player_type=:human)
     @player_type = player_type
     @move = nil
+    set_name
+  end
+
+  def set_name
+    if human?
+      n = ""
+      loop do
+        puts "What is your name?"
+        n = gets.chomp
+        break unless n.empty?
+        puts "Must enter a value."
+      end
+      self.name = n
+    else
+      self.name = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5'].sample
+    end
   end
 
   def human?
@@ -88,7 +121,6 @@ class Player
         puts "Invalid choice."
       end
       self.move = choice
-      
     else
       self.move = %w(rock paper scissors).sample
     end
