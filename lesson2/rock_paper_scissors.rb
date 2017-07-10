@@ -17,7 +17,7 @@
 # compare
 
 # Organize and associate the verbs with the nouns.
-# Player 
+# Player
 # - choose
 # move
 # rule
@@ -45,17 +45,13 @@ class RPSGame
   def display_winner
     puts "#{player.name} chose #{player.move}"
     puts "#{computer.name} chose #{computer.move}"
-    if player.move == 'rock' && computer.move == 'scissors' ||
-       player.move == 'scissors' && computer.move == 'paper' ||
-       player.move == 'paper' && computer.move == 'rock'
 
-       puts "#{player.name} Won!"
-    elsif computer.move == 'rock' && player.move == 'scissors' ||
-          computer.move == 'scissors' && player.move == 'paper' ||
-          computer.move == 'paper' && player.move == 'rock'
-        puts "#{computer.name} Won!"
+    if player.move > computer.move
+      puts "#{player.name} won!"
+    elsif player.move < computer.move
+      puts "#{computer.name} won!"
     else
-        puts "Its a Tie."
+      puts "It's a tie."
     end
   end
 
@@ -68,7 +64,7 @@ class RPSGame
       puts "Invalid entry. Must be y or n."
     end
     return true if answer == 'y'
-    return false
+    false
   end
 
   def play
@@ -107,10 +103,10 @@ class Human < Player
     choice = nil
     loop do
       choice = gets.chomp.downcase
-      break if %w(rock paper scissors).include?(choice)
+      break if Move::VALUES.include?(choice)
       puts "Invalid choice."
     end
-    self.move = choice
+    self.move = Move.new(choice)
   end
 end
 
@@ -120,21 +116,60 @@ class Computer < Player
   end
 
   def choose
-    self.move = %w(rock paper scissors).sample
+    self.move = Move.new(Move::VALUES.sample)
   end
 end
 
-# class Move
-#   attr_reader :move
-#   def initialize(move)
-#     @move = move
-#   end
+class Move
+  VALUES = ['rock', 'paper', 'scissors']
+  attr_reader :value
 
-#   def to_s
-#     self.move
-#   end
+  def initialize(value)
+    @value = value
+  end
 
-# end
+  def rock?
+    @value == 'rock'
+  end
+
+  def paper?
+    @value == 'paper'
+  end
+
+  def scissors?
+    @value == 'scissors'
+  end
+
+  def >(other_move)
+    if rock?
+      return true if other_move.value == 'scissors'
+      false
+    elsif paper?
+      return true if other_move.value == 'rock'
+      false
+    elsif scissors?
+      return true if other_move.value == 'paper'
+      false
+    end
+  end
+
+  def <(other_move)
+    if rock?
+      return true if other_move.value == 'paper'
+      false
+    elsif paper?
+      return true if other_move.value == 'scissors'
+      false
+    elsif scissors?
+      return true if other_move.value == 'rock'
+      false
+    end
+  end
+
+  def to_s
+    value
+  end
+end
 
 RPSGame.new.play
 
@@ -142,8 +177,3 @@ RPSGame.new.play
 # player.player_choose
 # computer.computer_choose
 # find_winner.compare(player.move.to_s, computer.move.to_s)
-
-
-
-
-
