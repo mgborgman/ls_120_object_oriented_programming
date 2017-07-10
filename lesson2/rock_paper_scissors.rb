@@ -30,8 +30,8 @@ class RPSGame
   attr_accessor :player, :computer
 
   def initialize
-    @player = Player.new
-    @computer = Player.new(:computer)
+    @player = Human.new
+    @computer = Computer.new
   end
 
   def display_welcome_message
@@ -85,45 +85,42 @@ end
 
 class Player
   attr_accessor :move, :name
-  attr_reader :player_type
-  def initialize(player_type=:human)
-    @player_type = player_type
-    @move = nil
+  def initialize
     set_name
   end
+end
 
+class Human < Player
   def set_name
-    if human?
-      n = ""
-      loop do
-        puts "What is your name?"
-        n = gets.chomp
-        break unless n.empty?
-        puts "Must enter a value."
-      end
-      self.name = n
-    else
-      self.name = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5'].sample
+    n = ""
+    loop do
+      puts "What is your name?"
+      n = gets.chomp
+      break unless n.empty?
+      puts "Must enter a value."
     end
-  end
-
-  def human?
-    self.player_type == :human
+    self.name = n
   end
 
   def choose
-    if human?
-      puts "Choose: Rock, Paper, or scissors"
-      choice = nil
-      loop do
-        choice = gets.chomp.downcase
-        break if %w(rock paper scissors).include?(choice)
-        puts "Invalid choice."
-      end
-      self.move = choice
-    else
-      self.move = %w(rock paper scissors).sample
+    puts "Choose: Rock, Paper, or scissors"
+    choice = nil
+    loop do
+      choice = gets.chomp.downcase
+      break if %w(rock paper scissors).include?(choice)
+      puts "Invalid choice."
     end
+    self.move = choice
+  end
+end
+
+class Computer < Player
+  def set_name
+    self.name = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5'].sample
+  end
+
+  def choose
+    self.move = %w(rock paper scissors).sample
   end
 end
 
