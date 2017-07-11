@@ -42,10 +42,12 @@ class RPSGame
     puts "Thanks for playing!"
   end
 
-  def display_winner
+  def display_choice
     puts "#{player.name} chose #{player.move}"
     puts "#{computer.name} chose #{computer.move}"
+  end
 
+  def display_winner
     if player.move > computer.move
       puts "#{player.name} won!"
     elsif player.move < computer.move
@@ -72,6 +74,7 @@ class RPSGame
     loop do
       player.choose
       computer.choose
+      display_choice
       display_winner
       break unless play_again?
     end
@@ -140,30 +143,16 @@ class Move
     @value == 'scissors'
   end
 
-  def >(other_move)
-    if rock?
-      return true if other_move.value == 'scissors'
-      false
-    elsif paper?
-      return true if other_move.value == 'rock'
-      false
-    elsif scissors?
-      return true if other_move.value == 'paper'
-      false
-    end
+  def >(other_player)
+    rock? && other_player.scissors? ||
+      (paper? && other_player.rock?) ||
+      (scissors? && other_player.paper?)
   end
 
-  def <(other_move)
-    if rock?
-      return true if other_move.value == 'paper'
-      false
-    elsif paper?
-      return true if other_move.value == 'scissors'
-      false
-    elsif scissors?
-      return true if other_move.value == 'rock'
-      false
-    end
+  def <(other_player)
+    rock? && other_player.paper? ||
+      (paper? && other_player.scissors?) ||
+      (scissors? && other_player.rock?)
   end
 
   def to_s
