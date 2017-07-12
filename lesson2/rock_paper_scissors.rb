@@ -161,9 +161,3 @@ class Move
 end
 
 RPSGame.new.play
-
-
-# find_winner = Rule.new
-# player.player_choose
-# computer.computer_choose
-# find_winner.compare(player.move.to_s, computer.move.to_s)
