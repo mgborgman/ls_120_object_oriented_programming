@@ -53,7 +53,7 @@ class RPSLSGame
 
   def display_match_winner
     if self.player_score == 10
-      puts "#{player.name} won the match!" 
+      puts "#{player.name} won the match!"
     else
       puts "#{computer.name} won the match!"
     end
@@ -90,9 +90,9 @@ class RPSLSGame
 end
 
 class Player
-  attr_accessor :move, :name, :score
+  attr_accessor :move, :name, :score, :history
   def initialize
-    #@score = 0
+    @history = []
     set_name
   end
 
@@ -113,14 +113,7 @@ class Human < Player
     self.name = n
   end
 
-  def choose
-    puts "Choose: Rock, Paper, Scissors, Lizard, or Spock"
-    choice = nil
-    loop do
-      choice = gets.chomp.downcase
-      break if Move::VALUES.include?(choice)
-      puts "Invalid choice."
-    end
+  def assign_choice(choice)
     case choice
     when 'rock'
       self.move = Rock.new
@@ -131,8 +124,20 @@ class Human < Player
     when 'lizard'
       self.move = Lizard.new
     when 'spock'
-      self.move = Spock.new         
-    end    
+      self.move = Spock.new
+    end
+  end
+
+  def choose
+    choice = nil
+    loop do
+      puts "Choose: Rock, Paper, Scissors, Lizard, or Spock"
+      choice = gets.chomp.downcase
+      break if Move::VALUES.include?(choice)
+      puts "Invalid choice."
+    end
+    assign_choice(choice)
+    history << move.value
   end
 end
 
@@ -143,6 +148,7 @@ class Computer < Player
 
   def choose
     self.move = Move.new(Move::VALUES.sample)
+    history << move.value
   end
 end
 
@@ -228,7 +234,7 @@ class Paper < Move
 
   def >(other_player)
     paper? && other_player.rock? ||
-     (paper? && other_player.spock?)
+      (paper? && other_player.spock?)
   end
 
   def <(other_player)
@@ -239,7 +245,7 @@ end
 
 class Scissors < Move
   def initialize
-    @value = 'scissors'    
+    @value = 'scissors'
   end
 
   def >(other_player)
