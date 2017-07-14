@@ -1,3 +1,4 @@
+require 'pry'
 # updating code for Rock Paper Scissors to create
 # Rock Paper Scissors Lizard Spock
 class RPSLSGame
@@ -77,7 +78,7 @@ class RPSLSGame
       set_score
       loop do
         player.choose
-        computer.choose
+        computer.choose(player)
         display_choice
         display_round_winner
         break if match_winner?
@@ -92,7 +93,7 @@ end
 class Player
   attr_accessor :move, :name, :score, :history
   def initialize
-    @history = []
+    @history = { rock: 0, paper: 0, scissors: 0, lizard: 0, spock: 0 }
     set_name
   end
 
@@ -137,18 +138,45 @@ class Human < Player
       puts "Invalid choice."
     end
     assign_choice(choice)
-    history << move.value
+    history[choice.to_sym] += 1
   end
 end
 
 class Computer < Player
+  attr_accessor :most_common_move
   def set_name
     self.name = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5'].sample
   end
 
-  def choose
-    self.move = Move.new(Move::VALUES.sample)
-    history << move.value
+  def create_most_common_move(other_player)
+    player_moves = other_player.history
+    sorted_player_moves = player_moves.sort_by { |_, count| -count }
+    self.most_common_move = sorted_player_moves.shift
+  end
+
+  def set_most_common_move
+    case most_common_move[0].to_s
+    when 'rock'
+      Move.new(%w[paper spock].sample)
+    when 'paper'
+      Move.new(%w[scissors lizard].sample)
+    when 'scissors'
+      Move.new(%w[rock spock].sample)
+    when 'lizard'
+      Move.new(%w[rock scissors].sample)
+    when 'spock'
+      Move.new(%w[paper lizard].sample)
+    end
+  end
+
+  def choose(other_player)
+    if !other_player.history.nil?
+      create_most_common_move(other_player)
+      self.move = set_most_common_move
+    else
+      self.move = Move.new(Move::VALUES.sample)
+    end
+    history[move.value.to_sym] += 1
   end
 end
 
@@ -179,32 +207,6 @@ class Move
   def spock?
     @value == 'spock'
   end
-
-  # def >(other_player)
-  #   rock? && other_player.scissors? ||
-  #     (rock? && other_player.lizard?) ||
-  #     (paper? && other_player.spock?) ||
-  #     (paper? && other_player.rock?) ||
-  #     (scissors? && other_player.paper?) ||
-  #     (scissors? && other_player.lizard) ||
-  #     (lizard? && other_player.spock?) ||
-  #     (lizard? && other_player.paper?) ||
-  #     (spock? && other_player.scissors?) ||
-  #     (spock? && other_player.rock?)
-  # end
-
-  # def <(other_player)
-  #   rock? && other_player.paper? ||
-  #     (rock? && other_player.spock?) ||
-  #     (paper? && other_player.scissors?) ||
-  #     (paper? && other_player.lizard?) ||
-  #     (scissors? && other_player.rock?) ||
-  #     (scissors? && other_player.spock?) ||
-  #     (lizard? && other_player.scissors?) ||
-  #     (lizard? && other_player.rock?) ||
-  #     (spock? && other_player.lizard?) ||
-  #     (spock? && other_player.paper?)
-  # end
 
   def to_s
     value
