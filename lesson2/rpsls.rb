@@ -16,6 +16,12 @@ class RPSLSGame
     self.computer_score = 0
   end
 
+  def show_current_score
+    puts "Current score is:"
+    puts "#{player.name} has won #{player_score} rounds"
+    puts "#{computer.name} has won #{computer_score} rounds"
+  end
+
   def display_welcome_message
     puts "Welcome to Rock, Paper, Scissors #{player.name}!"
   end
@@ -81,6 +87,7 @@ class RPSLSGame
         computer.choose(player)
         display_choice
         display_round_winner
+        show_current_score
         break if match_winner?
       end
       display_match_winner
@@ -143,9 +150,30 @@ class Human < Player
 end
 
 class Computer < Player
-  attr_accessor :most_common_move
+  attr_accessor :most_common_move, :rules, :rule
+
   def set_name
     self.name = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5'].sample
+  end
+
+  def r2d2?
+    name == 'R2D2'
+  end
+
+  def hal?
+    name == 'Hal'
+  end
+
+  def chappie?
+    name == 'Chappie'
+  end
+
+  def sonny?
+    name == 'Sonny'
+  end
+
+  def nummber_5?
+    name == 'Number 5'
   end
 
   def create_most_common_move(other_player)
@@ -169,14 +197,56 @@ class Computer < Player
     end
   end
 
-  def choose(other_player)
-    if !other_player.history.nil?
-      create_most_common_move(other_player)
-      self.move = set_most_common_move
-    else
-      self.move = Move.new(Move::VALUES.sample)
+  def invoke_rule?
+    rand(1..10) > 4 ? true : false
+  end
+
+  def use_rule
+    if r2d2?
+      self.move = r2_d2_rule
+    elsif hal?
+      self.move = hal_rule
+    elsif chappie?
+      self.move = chappie_rule
+    elsif sonny?
+      self.move = sonny_rule
+    elsif nummber_5?
+      self.move = number_5_rule
     end
-    history[move.value.to_sym] += 1
+  end
+
+  def r2_d2_rule
+    Move.new(%w[rock lizard].sample)
+  end
+
+  def hal_rule
+    Move.new(%w[scissors rock].sample)
+  end
+
+  def chappie_rule
+    Move.new(%w[paper rock].sample)
+  end
+
+  def sonny_rule
+    Move.new(%w[scissors spock].sample)
+  end
+
+  def number_5_rule
+    Move.new(%w[spock lizard].sample)
+  end
+
+  def choose(other_player)
+    if invoke_rule?
+      use_rule
+    else
+      if !other_player.history.nil?
+        create_most_common_move(other_player)
+        self.move = set_most_common_move
+      else
+        self.move = Move.new(Move::VALUES.sample)
+      end
+      history[move.value.to_sym] += 1
+    end
   end
 end
 
