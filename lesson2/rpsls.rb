@@ -1,47 +1,53 @@
-require 'pry'
 # updating code for Rock Paper Scissors to create
 # Rock Paper Scissors Lizard Spock
+NEW_LINE = "\n\n"
+
 class RPSLSGame
-  attr_accessor :player, :computer, :player_score, :computer_score
+  attr_accessor :player, :computer
 
   def initialize
     @player = Human.new
     @computer = Computer.new
-    @player_score = @player.score
-    @computer_score = @computer.score
   end
 
   def set_score
-    self.player_score = 0
-    self.computer_score = 0
+    player.score = 0
+    computer.score = 0
   end
 
   def show_current_score
     puts "Current score is:"
-    puts "#{player.name} has won #{player_score} rounds"
-    puts "#{computer.name} has won #{computer_score} rounds"
+    puts "#{player.name} has won #{player.score} rounds"
+    puts "#{computer.name} has won #{computer.score} rounds#{NEW_LINE}"
   end
 
   def display_welcome_message
-    puts "Welcome to Rock, Paper, Scissors #{player.name}!"
+    puts "Welcome to Rock, Paper, Scissors #{player.name}!#{NEW_LINE}"
   end
 
   def display_goodbye_message
-    puts "Thanks for playing!"
+    puts "Thanks for playing!#{NEW_LINE}"
   end
 
   def display_choice
     puts "#{player.name} chose #{player.move}"
-    puts "#{computer.name} chose #{computer.move}"
+    puts "#{computer.name} chose #{computer.move}#{NEW_LINE}"
   end
 
   def determine_round_winner
     if player.move > computer.move
-      self.player_score += 1
       player
     elsif player.move < computer.move
-      self.computer_score += 1
       computer
+    end
+  end
+
+  def increase_score
+    winner = determine_round_winner
+    if winner == player
+      player.increase_score
+    elsif winner == computer
+      computer.increase_score
     end
   end
 
@@ -55,11 +61,11 @@ class RPSLSGame
   end
 
   def match_winner?
-    self.player_score == 10 || self.computer_score == 10
+    player.score == 10 || computer.score == 10
   end
 
   def display_match_winner
-    if self.player_score == 10
+    if player.score == 10
       puts "#{player.name} won the match!"
     else
       puts "#{computer.name} won the match!"
@@ -78,8 +84,7 @@ class RPSLSGame
     false
   end
 
-  def play
-    display_welcome_message
+  def main_game_loop
     loop do
       set_score
       loop do
@@ -87,12 +92,18 @@ class RPSLSGame
         computer.choose(player)
         display_choice
         display_round_winner
+        increase_score
         show_current_score
         break if match_winner?
       end
       display_match_winner
       break unless play_again?
     end
+  end
+
+  def play
+    display_welcome_message
+    main_game_loop
     display_goodbye_message
   end
 end
@@ -111,14 +122,14 @@ end
 
 class Human < Player
   def set_name
-    n = ""
+    input = ""
     loop do
       puts "What is your name?"
-      n = gets.chomp
-      break unless n.empty?
+      input = gets.chomp.strip
+      break unless input.empty?
       puts "Must enter a value."
     end
-    self.name = n
+    self.name = input
   end
 
   def assign_choice(choice)
@@ -145,7 +156,7 @@ class Human < Player
       puts "Invalid choice."
     end
     assign_choice(choice)
-    history[choice.to_sym] += 1
+    @history[choice.to_sym] += 1
   end
 end
 
@@ -156,44 +167,28 @@ class Computer < Player
     self.name = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5'].sample
   end
 
-  def r2d2?
-    name == 'R2D2'
-  end
-
-  def hal?
-    name == 'Hal'
-  end
-
-  def chappie?
-    name == 'Chappie'
-  end
-
-  def sonny?
-    name == 'Sonny'
-  end
-
-  def nummber_5?
-    name == 'Number 5'
-  end
-
-  def create_most_common_move(other_player)
+  def find_most_common_move(other_player)
     player_moves = other_player.history
     sorted_player_moves = player_moves.sort_by { |_, count| -count }
     self.most_common_move = sorted_player_moves.shift
   end
 
-  def set_most_common_move
-    case most_common_move[0].to_s
+  def most_common_move_to_s
+    most_common_move[0].to_s
+  end
+
+  def choose_most_likely_to_win_move
+    case most_common_move_to_s
     when 'rock'
-      Move.new(%w[paper spock].sample)
+      [Paper.new, Spock.new].sample
     when 'paper'
-      Move.new(%w[scissors lizard].sample)
+      [Scissors.new, Lizard.new].sample
     when 'scissors'
-      Move.new(%w[rock spock].sample)
+      [Rock.new, Spock.new].sample
     when 'lizard'
-      Move.new(%w[rock scissors].sample)
+      [Rock.new, Scissors.new].sample
     when 'spock'
-      Move.new(%w[paper lizard].sample)
+      [Paper.new, Lizard.new].sample
     end
   end
 
@@ -202,37 +197,38 @@ class Computer < Player
   end
 
   def use_rule
-    if r2d2?
+    case @name
+    when 'R2D2'
       self.move = r2_d2_rule
-    elsif hal?
+    when 'Hal'
       self.move = hal_rule
-    elsif chappie?
+    when 'Chappie'
       self.move = chappie_rule
-    elsif sonny?
+    when 'Sonny'
       self.move = sonny_rule
-    elsif nummber_5?
+    when 'Number 5'
       self.move = number_5_rule
     end
   end
 
   def r2_d2_rule
-    Move.new(%w[rock lizard].sample)
+    [Rock.new, Lizard.new].sample
   end
 
   def hal_rule
-    Move.new(%w[scissors rock].sample)
+    [Scissors.new, Rock.new].sample
   end
 
   def chappie_rule
-    Move.new(%w[paper rock].sample)
+    [Paper.new, Rock.new].sample
   end
 
   def sonny_rule
-    Move.new(%w[scissors spock].sample)
+    [Scissors.new, Spock.new].sample
   end
 
   def number_5_rule
-    Move.new(%w[spock lizard].sample)
+    [Spock.new, Lizard.new].sample
   end
 
   def choose(other_player)
@@ -240,12 +236,13 @@ class Computer < Player
       use_rule
     else
       if !other_player.history.nil?
-        create_most_common_move(other_player)
-        self.move = set_most_common_move
+        find_most_common_move(other_player)
+        self.move = choose_most_likely_to_win_move
       else
-        self.move = Move.new(Move::VALUES.sample)
+        self.move = [Rock.new, Paper.new, Scissors.new,
+                     Lizard.new, Spock.new].sample
       end
-      history[move.value.to_sym] += 1
+      @history[move.value.to_sym] += 1
     end
   end
 end
@@ -256,26 +253,6 @@ class Move
 
   def initialize(value)
     @value = value
-  end
-
-  def rock?
-    @value == 'rock'
-  end
-
-  def paper?
-    @value == 'paper'
-  end
-
-  def scissors?
-    @value == 'scissors'
-  end
-
-  def lizard?
-    @value == 'lizard'
-  end
-
-  def spock?
-    @value == 'spock'
   end
 
   def to_s
@@ -289,13 +266,13 @@ class Rock < Move
   end
 
   def >(other_player)
-    rock? && other_player.scissors? ||
-      (rock? && other_player.lizard?)
+    other_player.value == 'scissors' ||
+      other_player.value == 'lizard'
   end
 
   def <(other_player)
-    rock? && other_player.paper? ||
-      (rock? && other_player.spock?)
+    other_player.value == 'paper' ||
+      other_player.value == 'spock'
   end
 end
 
@@ -305,13 +282,13 @@ class Paper < Move
   end
 
   def >(other_player)
-    paper? && other_player.rock? ||
-      (paper? && other_player.spock?)
+    other_player.value == 'rock' ||
+      other_player.value == 'spock'
   end
 
   def <(other_player)
-    paper? && other_player.scissors? ||
-      (paper? && other_player.lizard?)
+    other_player.value == 'scissors' ||
+      other_player.value == 'lizard'
   end
 end
 
@@ -321,13 +298,13 @@ class Scissors < Move
   end
 
   def >(other_player)
-    scissors? && other_player.paper? ||
-      (scissors? && other_player.lizard?)
+    other_player.value == 'paper' ||
+      other_player.value == 'lizard'
   end
 
   def <(other_player)
-    scissors? && other_player.rock? ||
-      (scissors? && other_player.spock?)
+    other_player.value == 'rock' ||
+      other_player.value == 'spock'
   end
 end
 
@@ -337,13 +314,13 @@ class Lizard < Move
   end
 
   def >(other_player)
-    lizard? && other_player.paper? ||
-      (lizard? && other_player.spock?)
+    other_player.value == 'paper' ||
+      other_player.value == 'spock'
   end
 
   def <(other_player)
-    lizard? && other_player.rock? ||
-      (lizard? && other_player.scissors?)
+    other_player.value == 'rock' ||
+      other_player.value == 'scissors'
   end
 end
 
@@ -353,13 +330,13 @@ class Spock < Move
   end
 
   def >(other_player)
-    spock? && other_player.rock? ||
-      (spock? && other_player.scissors?)
+    other_player.value == 'rock' ||
+      other_player.value == 'scissors'
   end
 
   def <(other_player)
-    spock? && other_player.paper? ||
-      (spock? && other_player.lizard?)
+    other_player.value == 'paper' ||
+      other_player.value == 'lizard'
   end
 end
 
