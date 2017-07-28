@@ -2,8 +2,8 @@ require 'pry'
 
 class Board
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9],
-                  [1, 4, 7], [2, 5, 8], [3, 6, 9],
-                  [1, 5, 9], [3, 5, 7]]
+                   [1, 4, 7], [2, 5, 8], [3, 6, 9],
+                   [1, 5, 9], [3, 5, 7]]
 
   def initialize
     @squares = {}
@@ -37,23 +37,23 @@ class Board
   end
 
   def reset
-    (1..9).each{ |key| @squares[key] = Square.new }
+    (1..9).each { |key| @squares[key] = Square.new }
   end
 
   def draw
     puts "     |     |"
-    puts "  #{@squares[1]}  |  #{@squares[2]}" +
-    "  |  #{@squares[3]}  "
+    puts "  #{@squares[1]}  |  #{@squares[2]}" \
+         "  |  #{@squares[3]}  "
     puts "     |     |"
     puts "-----+-----+-----"
     puts "     |     |"
-    puts "  #{@squares[4]}  |  #{@squares[5]}" +
-    "  |  #{@squares[6]}  "
+    puts "  #{@squares[4]}  |  #{@squares[5]}" \
+         "  |  #{@squares[6]}  "
     puts "     |     |"
     puts "-----+-----+-----"
     puts "     |     |"
-    puts "  #{@squares[7]}  |  #{@squares[8]}" +
-    "  |  #{@squares[9]}  "
+    puts "  #{@squares[7]}  |  #{@squares[8]}" \
+         "  |  #{@squares[9]}  "
     puts "     |     |"
   end
 
@@ -64,7 +64,6 @@ class Board
     return false if markers.size != 3
     markers.min == markers.max
   end
-
 end
 
 class Square
@@ -87,11 +86,6 @@ class Square
   def unmarked?
     @marker == INITAIL_MARKER
   end
-  
-end
-
-class Marker
-  
 end
 
 class Player
@@ -100,7 +94,6 @@ class Player
   def initialize(marker)
     @marker = marker
   end
-
 end
 
 class TTTGame
@@ -115,42 +108,41 @@ class TTTGame
     @computer = Player.new(COMPUTER_MARKER)
     @current_marker = FIRST_TO_MOVE
   end
-  
+
   def play
     clear
     display_welcome_message
 
     loop do
-
       display_board
-
       loop do
-
         current_player_moves
         clear_screen_and_display_board
         break if board.someone_won? || board.full?
-
       end
-
-      display_results      
+      display_results
       break unless play_again?
       reset
       display_play_again_message
-
     end
     display_goodbye_message
   end
 
   private
 
-  def human_moves
+  def prompt_for_human_move
     square = nil
     loop do
       puts "Choose a square #{board.unmarked_keys.join(', ')}"
       square = gets.chomp.to_i
-      break if (board.unmarked_keys.include?(square))
+      break if board.unmarked_keys.include?(square)
       puts "Invalid, Choice must be #{board.unmarked_keys.join(', ')}"
     end
+    square
+  end
+
+  def human_moves
+    square = prompt_for_human_move
     board[square] = human.marker
   end
 
@@ -203,7 +195,7 @@ class TTTGame
     loop do
       puts "Would you like to play again? (y/n)"
       answer = gets.chomp.downcase
-      break if %w(y n).include?(answer)
+      break if %w[y n].include?(answer)
       puts "Invalid, please enter y or n"
     end
     answer == 'y'
@@ -224,7 +216,6 @@ class TTTGame
     puts "You are: #{HUMAN_MARKER}  Computer is: #{COMPUTER_MARKER}\n\n"
     board.draw
   end
-
 end
 
 game = TTTGame.new
