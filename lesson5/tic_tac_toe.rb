@@ -40,6 +40,7 @@ class Board
     (1..9).each { |key| @squares[key] = Square.new }
   end
 
+  # rubocop:disable Metrics/AbcSize
   def draw
     puts "     |     |"
     puts "  #{@squares[1]}  |  #{@squares[2]}" \
@@ -90,9 +91,11 @@ end
 
 class Player
   attr_reader :marker
+  attr_accessor :score
 
   def initialize(marker)
     @marker = marker
+    @score = 0
   end
 end
 
@@ -109,34 +112,56 @@ class TTTGame
     @current_marker = FIRST_TO_MOVE
   end
 
+  def increment_score(marker)
+    if human.marker == marker
+      human.score += 1
+    elsif computer.marker == marker
+      computer.score += 1
+    end
+  end
+
   def play
     clear
     display_welcome_message
-
     loop do
-      display_board
       loop do
-        current_player_moves
-        clear_screen_and_display_board
-        break if board.someone_won? || board.full?
+        display_board
+        loop do
+          current_player_moves
+          clear_screen_and_display_board
+          break if board.someone_won? || board.full?
+        end
+        #display_round_results
+        increment_score(board.winning_marker)
+        break if human.score == 5 || computer.score == 5
+        reset
       end
-      display_results
+      display_match_results
       break unless play_again?
-      reset
       display_play_again_message
+      reset
+      set_score_back_to_zero
     end
     display_goodbye_message
   end
 
   private
 
+  def joinor(array, separator=', ', conjunction='or ')
+    array.map! { |item| item.to_s }
+    last_array_item = array.last
+    last_array_item = conjunction + last_array_item
+    array[-1] = last_array_item
+    array.join(separator)
+  end
+
   def prompt_for_human_move
     square = nil
     loop do
-      puts "Choose a square #{board.unmarked_keys.join(', ')}"
+      puts "Choose a square #{joinor(board.unmarked_keys)}"
       square = gets.chomp.to_i
       break if board.unmarked_keys.include?(square)
-      puts "Invalid, Choice must be #{board.unmarked_keys.join(', ')}"
+      puts "Invalid, Choice must be #{joinor(board.unmarked_keys)}"
     end
     square
   end
@@ -176,13 +201,21 @@ class TTTGame
     puts "Let's play again!\n\n"
   end
 
-  def display_results
+  def display_round_results
     if board.full?
       puts "Its a Tie."
     elsif board.winning_marker == HUMAN_MARKER
-      puts "You Won!"
+      puts "You Won the Round!"
     elsif board.winning_marker == COMPUTER_MARKER
-      puts "Computer Won!"
+      puts "Computer Won the Round!"
+    end
+  end
+
+  def display_match_results
+    if human.score == 5
+      puts "You Won the Match!"
+    else
+      puts "Computer Won the Match!"
     end
   end
 
@@ -212,9 +245,16 @@ class TTTGame
     @current_marker = FIRST_TO_MOVE
   end
 
+  def set_score_back_to_zero
+    human.score = 0
+    computer.score = 0
+  end
+
   def display_board
     puts "You are: #{HUMAN_MARKER}  Computer is: #{COMPUTER_MARKER}\n\n"
     board.draw
+
+    puts "player: #{human.score}  computer: #{computer.score}"
   end
 end
 
