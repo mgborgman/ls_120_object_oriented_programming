@@ -171,7 +171,7 @@ class TTTGame
     clear
     display_welcome_message
     human.choose_marker
-    current_marker = human.marker
+    self.current_marker = human.marker
     loop do
       loop do
         display_board
@@ -228,7 +228,6 @@ class TTTGame
   end
 
   def human_turn?
-    binding.pry
     current_marker == human.marker
   end
 
@@ -247,10 +246,10 @@ class TTTGame
   def current_player_moves
     if human_turn?
       human_moves
-      current_marker = COMPUTER_MARKER
+      self.current_marker = COMPUTER_MARKER
     else
       computer_moves
-      current_marker = human.marker
+      self.current_marker = human.marker
     end
   end
 
@@ -307,7 +306,7 @@ class TTTGame
   def reset
     board.reset
     clear
-    current_marker = human.marker
+    self.current_marker = human.marker
   end
 
   def set_score_back_to_zero
