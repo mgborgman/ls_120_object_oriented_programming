@@ -13,11 +13,11 @@ class Board
   end
 
   def []=(num, marker)
-    @squares[num].marker = marker
+    squares[num].marker = marker
   end
 
   def unmarked_keys
-    @squares.keys.select { |key| @squares[key].unmarked? }
+    squares.keys.select { |key| squares[key].unmarked? }
   end
 
   def full?
@@ -26,7 +26,7 @@ class Board
 
   def winning_marker
     WINNING_LINES.each do |line|
-      squares = @squares.values_at(*line)
+      squares = self.squares.values_at(*line)
       if three_identical_markers?(squares)
         return squares.first.marker
       end
@@ -36,7 +36,7 @@ class Board
 
   def chance_of_winning?
     WINNING_LINES.each do |line|
-      squares = @squares.values_at(*line)
+      squares = self.squares.values_at(*line)
       if two_identical_markers?(squares, TTTGame::COMPUTER_MARKER)
         return line
       end
@@ -45,7 +45,7 @@ class Board
   end
 
   def find_empty_square(squares)
-    squares.select { |square| @squares[square].unmarked? }
+    squares.select { |square| self.squares[square].unmarked? }
   end
 
   def someone_won?
@@ -53,24 +53,24 @@ class Board
   end
 
   def reset
-    (1..9).each { |key| @squares[key] = Square.new }
+    (1..9).each { |key| squares[key] = Square.new }
   end
 
   # rubocop:disable Metrics/AbcSize
   def draw
     puts "     |     |"
-    puts "  #{@squares[1]}  |  #{@squares[2]}" \
-         "  |  #{@squares[3]}  "
+    puts "  #{squares[1]}  |  #{squares[2]}" \
+         "  |  #{squares[3]}  "
     puts "     |     |"
     puts "-----+-----+-----"
     puts "     |     |"
-    puts "  #{@squares[4]}  |  #{@squares[5]}" \
-         "  |  #{@squares[6]}  "
+    puts "  #{squares[4]}  |  #{squares[5]}" \
+         "  |  #{squares[6]}  "
     puts "     |     |"
     puts "-----+-----+-----"
     puts "     |     |"
-    puts "  #{@squares[7]}  |  #{@squares[8]}" \
-         "  |  #{@squares[9]}  "
+    puts "  #{squares[7]}  |  #{squares[8]}" \
+         "  |  #{squares[9]}  "
     puts "     |     |"
   end
 
@@ -137,9 +137,7 @@ class Player
 end
 
 class TTTGame
-  #HUMAN_MARKER = human.marker
   COMPUTER_MARKER = 'O'
-  #FIRST_TO_MOVE = human.marker
 
   attr_reader :board, :human, :computer
   attr_accessor :current_marker
@@ -173,7 +171,7 @@ class TTTGame
     clear
     display_welcome_message
     human.choose_marker
-    self.current_marker = human.marker
+    current_marker = human.marker
     loop do
       loop do
         display_board
@@ -230,7 +228,8 @@ class TTTGame
   end
 
   def human_turn?
-    self.current_marker == human.marker
+    binding.pry
+    current_marker == human.marker
   end
 
   def computer_moves
@@ -248,10 +247,10 @@ class TTTGame
   def current_player_moves
     if human_turn?
       human_moves
-      self.current_marker = COMPUTER_MARKER
+      current_marker = COMPUTER_MARKER
     else
       computer_moves
-      self.current_marker = human.marker
+      current_marker = human.marker
     end
   end
 
@@ -308,7 +307,7 @@ class TTTGame
   def reset
     board.reset
     clear
-    self.current_marker = human.marker
+    current_marker = human.marker
   end
 
   def set_score_back_to_zero
