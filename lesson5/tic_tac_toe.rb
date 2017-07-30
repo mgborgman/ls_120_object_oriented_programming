@@ -125,6 +125,10 @@ class Player
       puts "Please enter a single letter or character for your marker: "
       puts "Ex. 'X' or '1'"
       marker = gets.chomp.strip.upcase
+      if marker == 'O'
+        puts "Computer has already chosen 'O'" 
+        next
+      end
       break unless marker.length > 1 || marker.empty?
       puts "marker must be a single character"
     end
