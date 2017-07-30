@@ -32,6 +32,21 @@ class Board
     nil
   end
 
+  def chance_of_losing?
+    WINNING_LINES.each do |line|
+      squares = @squares.values_at(*line)
+      if two_identical_markers?(squares)
+        return line
+      end
+    end
+    nil
+  end
+
+  def find_empty_square
+    squares = chance_of_losing?
+    squares.select { |square| @squares[square].unmarked? }
+  end
+
   def someone_won?
     !!winning_marker
   end
@@ -58,6 +73,8 @@ class Board
     puts "     |     |"
   end
 
+
+
   private
 
   def three_identical_markers?(squares)
@@ -65,6 +82,12 @@ class Board
     return false if markers.size != 3
     markers.min == markers.max
   end
+end
+
+def two_identical_markers?(squares)
+  markers = squares.select(&:marked?).collect(&:marker)
+  return false if markers.size != 2
+  markers.min == markers.max
 end
 
 class Square
@@ -104,6 +127,7 @@ class TTTGame
   COMPUTER_MARKER = 'O'
   FIRST_TO_MOVE = HUMAN_MARKER
   attr_reader :board, :human, :computer
+  attr_accessor :current_marker
 
   def initialize
     @board = Board.new
@@ -172,20 +196,25 @@ class TTTGame
   end
 
   def human_turn?
-    @current_marker == HUMAN_MARKER
+    self.current_marker == HUMAN_MARKER
   end
 
   def computer_moves
-    board[board.unmarked_keys.sample] = computer.marker
+    if board.chance_of_losing?
+      square = board.find_empty_square
+      board[square.first] = computer.marker
+    else
+      board[board.unmarked_keys.sample] = computer.marker
+    end
   end
 
   def current_player_moves
     if human_turn?
       human_moves
-      @current_marker = COMPUTER_MARKER
+      self.current_marker = COMPUTER_MARKER
     else
       computer_moves
-      @current_marker = HUMAN_MARKER
+      self.current_marker = HUMAN_MARKER
     end
   end
 
