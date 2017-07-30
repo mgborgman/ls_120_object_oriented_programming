@@ -35,15 +35,24 @@ class Board
   def chance_of_losing?
     WINNING_LINES.each do |line|
       squares = @squares.values_at(*line)
-      if two_identical_markers?(squares)
+      if two_identical_markers?(squares, TTTGame::HUMAN_MARKER)
         return line
       end
     end
     nil
   end
 
-  def find_empty_square
-    squares = chance_of_losing?
+  def chance_of_winning?
+    WINNING_LINES.each do |line|
+      squares = @squares.values_at(*line)
+      if two_identical_markers?(squares, TTTGame::COMPUTER_MARKER)
+        return line
+      end
+    end
+    nil
+  end
+
+  def find_empty_square(squares)
     squares.select { |square| @squares[square].unmarked? }
   end
 
@@ -84,10 +93,10 @@ class Board
   end
 end
 
-def two_identical_markers?(squares)
+def two_identical_markers?(squares, marker)
   markers = squares.select(&:marked?).collect(&:marker)
   return false if markers.size != 2
-  markers.min == markers.max
+  markers.min == marker && markers.max == marker
 end
 
 class Square
@@ -153,9 +162,11 @@ class TTTGame
         loop do
           current_player_moves
           clear_screen_and_display_board
+          #wait
           break if board.someone_won? || board.full?
         end
-        #display_round_results
+        display_round_results
+        wait
         increment_score(board.winning_marker)
         break if human.score == 5 || computer.score == 5
         reset
@@ -167,6 +178,7 @@ class TTTGame
       set_score_back_to_zero
     end
     display_goodbye_message
+    wait
   end
 
   private
@@ -177,6 +189,10 @@ class TTTGame
     last_array_item = conjunction + last_array_item
     array[-1] = last_array_item
     array.join(separator)
+  end
+
+  def wait
+    system 'sleep 1.5'
   end
 
   def prompt_for_human_move
@@ -200,8 +216,11 @@ class TTTGame
   end
 
   def computer_moves
-    if board.chance_of_losing?
-      square = board.find_empty_square
+    if board.chance_of_winning?
+      square = board.find_empty_square(board.chance_of_winning?)
+      board[square.first] = computer.marker
+    elsif board.chance_of_losing?
+      square = board.find_empty_square(board.chance_of_losing?)
       board[square.first] = computer.marker
     else
       board[board.unmarked_keys.sample] = computer.marker
