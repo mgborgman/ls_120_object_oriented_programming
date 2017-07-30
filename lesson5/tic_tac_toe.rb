@@ -5,6 +5,8 @@ class Board
                    [1, 4, 7], [2, 5, 8], [3, 6, 9],
                    [1, 5, 9], [3, 5, 7]]
 
+  attr_reader :squares
+
   def initialize
     @squares = {}
     reset
@@ -27,16 +29,6 @@ class Board
       squares = @squares.values_at(*line)
       if three_identical_markers?(squares)
         return squares.first.marker
-      end
-    end
-    nil
-  end
-
-  def chance_of_losing?
-    WINNING_LINES.each do |line|
-      squares = @squares.values_at(*line)
-      if two_identical_markers?(squares, TTTGame::HUMAN_MARKER)
-        return line
       end
     end
     nil
@@ -82,7 +74,11 @@ class Board
     puts "     |     |"
   end
 
-
+  def two_identical_markers?(squares, marker)
+    markers = squares.select(&:marked?).collect(&:marker)
+    return false if markers.size != 2
+    markers.min == marker && markers.max == marker
+  end
 
   private
 
@@ -91,12 +87,6 @@ class Board
     return false if markers.size != 3
     markers.min == markers.max
   end
-end
-
-def two_identical_markers?(squares, marker)
-  markers = squares.select(&:marked?).collect(&:marker)
-  return false if markers.size != 2
-  markers.min == marker && markers.max == marker
 end
 
 class Square
@@ -122,27 +112,39 @@ class Square
 end
 
 class Player
-  attr_reader :marker
-  attr_accessor :score
+  attr_accessor :score, :marker
 
-  def initialize(marker)
+  def initialize(marker='X')
     @marker = marker
     @score = 0
+  end
+
+  def choose_marker
+    marker = nil
+    loop do
+      puts "Please enter a single letter or character for your marker: "
+      puts "Ex. 'X' or '1'"
+      marker = gets.chomp.strip.upcase
+      break unless marker.length > 1 || marker.empty?
+      puts "marker must be a single character"
+    end
+    self.marker = marker
   end
 end
 
 class TTTGame
-  HUMAN_MARKER = 'X'
+  #HUMAN_MARKER = human.marker
   COMPUTER_MARKER = 'O'
-  FIRST_TO_MOVE = HUMAN_MARKER
+  #FIRST_TO_MOVE = human.marker
+
   attr_reader :board, :human, :computer
   attr_accessor :current_marker
 
   def initialize
     @board = Board.new
-    @human = Player.new(HUMAN_MARKER)
+    @human = Player.new
     @computer = Player.new(COMPUTER_MARKER)
-    @current_marker = FIRST_TO_MOVE
+    @current_marker
   end
 
   def increment_score(marker)
@@ -153,9 +155,21 @@ class TTTGame
     end
   end
 
+  def chance_of_losing?
+    Board::WINNING_LINES.each do |line|
+      squares = board.squares.values_at(*line)
+      if board.two_identical_markers?(squares, human.marker)
+        return line
+      end
+    end
+    nil
+  end  
+
   def play
     clear
     display_welcome_message
+    human.choose_marker
+    self.current_marker = human.marker
     loop do
       loop do
         display_board
@@ -212,15 +226,15 @@ class TTTGame
   end
 
   def human_turn?
-    self.current_marker == HUMAN_MARKER
+    self.current_marker == human.marker
   end
 
   def computer_moves
     if board.chance_of_winning?
       square = board.find_empty_square(board.chance_of_winning?)
       board[square.first] = computer.marker
-    elsif board.chance_of_losing?
-      square = board.find_empty_square(board.chance_of_losing?)
+    elsif chance_of_losing?
+      square = board.find_empty_square(chance_of_losing?)
       board[square.first] = computer.marker
     else
       board[board.unmarked_keys.sample] = computer.marker
@@ -233,7 +247,7 @@ class TTTGame
       self.current_marker = COMPUTER_MARKER
     else
       computer_moves
-      self.current_marker = HUMAN_MARKER
+      self.current_marker = human.marker
     end
   end
 
@@ -252,7 +266,7 @@ class TTTGame
   def display_round_results
     if board.full?
       puts "Its a Tie."
-    elsif board.winning_marker == HUMAN_MARKER
+    elsif board.winning_marker == human.marker
       puts "You Won the Round!"
     elsif board.winning_marker == COMPUTER_MARKER
       puts "Computer Won the Round!"
@@ -290,7 +304,7 @@ class TTTGame
   def reset
     board.reset
     clear
-    @current_marker = FIRST_TO_MOVE
+    self.current_marker = human.marker
   end
 
   def set_score_back_to_zero
@@ -299,7 +313,7 @@ class TTTGame
   end
 
   def display_board
-    puts "You are: #{HUMAN_MARKER}  Computer is: #{COMPUTER_MARKER}\n\n"
+    puts "You are: #{human.marker}  Computer is: #{COMPUTER_MARKER}\n\n"
     board.draw
 
     puts "player: #{human.score}  computer: #{computer.score}"
