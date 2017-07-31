@@ -73,6 +73,7 @@ class Board
          "  |  #{squares[9]}  "
     puts "     |     |"
   end
+  # rubocop:enable Metrics/AbcSize
 
   def two_identical_markers?(squares, marker)
     markers = squares.select(&:marked?).collect(&:marker)
@@ -184,6 +185,7 @@ class TTTGame
     display_goodbye_message
     wait
   end
+  # rubocop:enable Metrics/MethodLength
 
   private
 
@@ -199,12 +201,11 @@ class TTTGame
     system 'sleep 1.5'
   end
 
-  def choose_marker
+  def prompt_for_marker_choice
     marker = nil
     loop do
       puts "#{human.name}, please enter a single letter" \
-      " or character for your marker: "
-      puts "Ex. 'X' or '1'"
+           " or character for your marker: "
       marker = gets.chomp.strip.upcase
       if marker == 'O'
         puts "Computer has already chosen 'O'"
@@ -215,7 +216,11 @@ class TTTGame
       wait
       clear
     end
-    clear
+    marker
+  end
+
+  def choose_marker
+    marker = prompt_for_marker_choice
     human.marker = marker
   end
 
@@ -258,13 +263,21 @@ class TTTGame
     current_marker == human.marker
   end
 
+  def place_winning_marker
+    square = board.find_empty_square(board.chance_of_winning?)
+    board[square.first] = computer.marker
+  end
+
+  def block_winning_marker
+    square = board.find_empty_square(chance_of_losing?)
+    board[square.first] = computer.marker
+  end
+
   def computer_moves
     if board.chance_of_winning?
-      square = board.find_empty_square(board.chance_of_winning?)
-      board[square.first] = computer.marker
+      place_winning_marker
     elsif chance_of_losing?
-      square = board.find_empty_square(chance_of_losing?)
-      board[square.first] = computer.marker
+      block_winning_marker
     else
       board[board.unmarked_keys.sample] = computer.marker
     end
