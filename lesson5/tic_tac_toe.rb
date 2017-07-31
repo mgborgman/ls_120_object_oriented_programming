@@ -150,8 +150,9 @@ class TTTGame
       end
     end
     nil
-  end  
+  end
 
+  # rubocop:disable Metrics/MethodLength
   def play
     clear
     display_welcome_message
@@ -165,7 +166,7 @@ class TTTGame
         loop do
           current_player_moves
           clear_screen_and_display_board
-          #wait
+          # wait
           break if board.someone_won? || board.full?
         end
         display_round_results
@@ -187,7 +188,7 @@ class TTTGame
   private
 
   def joinor(array, separator=', ', conjunction='or ')
-    array.map! { |item| item.to_s }
+    array.map!(&:to_s)
     last_array_item = array.last
     last_array_item = conjunction + last_array_item
     array[-1] = last_array_item
@@ -201,11 +202,12 @@ class TTTGame
   def choose_marker
     marker = nil
     loop do
-      puts "#{human.name}, please enter a single letter or character for your marker: "
+      puts "#{human.name}, please enter a single letter" \
+      " or character for your marker: "
       puts "Ex. 'X' or '1'"
       marker = gets.chomp.strip.upcase
       if marker == 'O'
-        puts "Computer has already chosen 'O'" 
+        puts "Computer has already chosen 'O'"
         next
       end
       break unless marker.length > 1 || marker.empty?
@@ -340,10 +342,12 @@ class TTTGame
   end
 
   def display_board
-    puts "#{human.name} is: #{human.marker}  #{computer.name} is: #{COMPUTER_MARKER}\n\n"
+    puts "#{human.name} is: #{human.marker}" \
+    " #{computer.name} is: #{COMPUTER_MARKER}\n\n"
     board.draw
 
-    puts "#{human.name}: #{human.score}  #{computer.name}: #{computer.score}"
+    puts "#{human.name}: #{human.score}" \
+    " #{computer.name}: #{computer.score}"
   end
 end
 
