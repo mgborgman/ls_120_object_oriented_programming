@@ -112,27 +112,12 @@ class Square
 end
 
 class Player
-  attr_accessor :score, :marker
+  attr_accessor :score, :marker, :name
 
   def initialize(marker='X')
     @marker = marker
     @score = 0
-  end
-
-  def choose_marker
-    marker = nil
-    loop do
-      puts "Please enter a single letter or character for your marker: "
-      puts "Ex. 'X' or '1'"
-      marker = gets.chomp.strip.upcase
-      if marker == 'O'
-        puts "Computer has already chosen 'O'" 
-        next
-      end
-      break unless marker.length > 1 || marker.empty?
-      puts "marker must be a single character"
-    end
-    self.marker = marker
+    @name = ""
   end
 end
 
@@ -170,7 +155,9 @@ class TTTGame
   def play
     clear
     display_welcome_message
-    human.choose_marker
+    human_choose_name
+    computer_set_name
+    choose_marker
     self.current_marker = human.marker
     loop do
       loop do
@@ -209,6 +196,44 @@ class TTTGame
 
   def wait
     system 'sleep 1.5'
+  end
+
+  def choose_marker
+    marker = nil
+    loop do
+      puts "#{human.name}, please enter a single letter or character for your marker: "
+      puts "Ex. 'X' or '1'"
+      marker = gets.chomp.strip.upcase
+      if marker == 'O'
+        puts "Computer has already chosen 'O'" 
+        next
+      end
+      break unless marker.length > 1 || marker.empty?
+      puts "marker must be a single character"
+      wait
+      clear
+    end
+    clear
+    human.marker = marker
+  end
+
+  def human_choose_name
+    name = nil
+    loop do
+      puts "Player 1 what is your name: "
+      name = gets.chomp.strip
+      break unless name.empty?
+      puts "Please enter a value."
+      wait
+      clear
+    end
+    clear
+    human.name = name
+  end
+
+  def computer_set_name
+    names = ['R2D2', 'Number 5', 'C-3PO', 'Hal', 'T-86']
+    computer.name = names.sample
   end
 
   def prompt_for_human_move
@@ -269,17 +294,17 @@ class TTTGame
     if board.full?
       puts "Its a Tie."
     elsif board.winning_marker == human.marker
-      puts "You Won the Round!"
+      puts "#{human.name} Won the Round!"
     elsif board.winning_marker == COMPUTER_MARKER
-      puts "Computer Won the Round!"
+      puts "#{computer.name} Won the Round!"
     end
   end
 
   def display_match_results
     if human.score == 5
-      puts "You Won the Match!"
+      puts "#{human.name} the Match!"
     else
-      puts "Computer Won the Match!"
+      puts "#{computer.name} Won the Match!"
     end
   end
 
@@ -315,10 +340,10 @@ class TTTGame
   end
 
   def display_board
-    puts "You are: #{human.marker}  Computer is: #{COMPUTER_MARKER}\n\n"
+    puts "#{human.name} is: #{human.marker}  #{computer.name} is: #{COMPUTER_MARKER}\n\n"
     board.draw
 
-    puts "player: #{human.score}  computer: #{computer.score}"
+    puts "#{human.name}: #{human.score}  #{computer.name}: #{computer.score}"
   end
 end
 
