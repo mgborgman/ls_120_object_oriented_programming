@@ -1,4 +1,3 @@
-require 'pry'
 
 class Board
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9],
@@ -122,6 +121,50 @@ class Player
   end
 end
 
+class Human < Player
+  def prompt_for_marker_choice
+    marker = nil
+    loop do
+      puts "#{name}, please enter a single letter" \
+           " or character for your marker: "
+      marker = gets.chomp.strip.upcase
+      if marker == 'O'
+        puts "Computer has already chosen 'O'"
+        next
+      end
+      break unless marker.length > 1 || marker.empty?
+      puts "marker must be a single character"
+      TTTGame.wait
+      TTTGame.clear
+    end
+    self.marker = marker
+  end
+
+  def choose_marker
+    self.marker = prompt_for_marker_choice
+  end
+
+  def choose_name
+    name = nil
+    loop do
+      puts "Player 1 what is your name: "
+      name = gets.chomp.strip
+      break unless name.empty?
+      puts "Please enter a value."
+      TTTGame.wait
+      TTTGame.clear
+    end
+    TTTGame.clear
+    self.name = name
+  end
+end
+
+class Computer < Player
+  def set_name
+    self.name = ['R2D2', 'Number 5', 'C-3PO', 'Hal', 'T-86'].sample
+  end
+end
+
 class TTTGame
   COMPUTER_MARKER = 'O'
 
@@ -130,9 +173,17 @@ class TTTGame
 
   def initialize
     @board = Board.new
-    @human = Player.new
-    @computer = Player.new(COMPUTER_MARKER)
+    @human = Human.new
+    @computer = Computer.new(COMPUTER_MARKER)
     @current_marker
+  end
+
+  def self.wait
+    system 'sleep 1.5'
+  end
+
+  def self.clear
+    system 'clear'
   end
 
   def increment_score(marker)
@@ -154,12 +205,13 @@ class TTTGame
   end
 
   # rubocop:disable Metrics/MethodLength
+  # rubocop:disable AbcSize
   def play
-    clear
+    TTTGame.clear
     display_welcome_message
-    human_choose_name
-    computer_set_name
-    choose_marker
+    human.choose_name
+    computer.set_name
+    human.choose_marker
     self.current_marker = human.marker
     loop do
       loop do
@@ -167,11 +219,10 @@ class TTTGame
         loop do
           current_player_moves
           clear_screen_and_display_board
-          # wait
           break if board.someone_won? || board.full?
         end
         display_round_results
-        wait
+        TTTGame.wait
         increment_score(board.winning_marker)
         break if human.score == 5 || computer.score == 5
         reset
@@ -183,9 +234,10 @@ class TTTGame
       set_score_back_to_zero
     end
     display_goodbye_message
-    wait
+    TTTGame.wait
   end
   # rubocop:enable Metrics/MethodLength
+  # rubocop:enable AbcSize
 
   private
 
@@ -195,52 +247,6 @@ class TTTGame
     last_array_item = conjunction + last_array_item
     array[-1] = last_array_item
     array.join(separator)
-  end
-
-  def wait
-    system 'sleep 1.5'
-  end
-
-  def prompt_for_marker_choice
-    marker = nil
-    loop do
-      puts "#{human.name}, please enter a single letter" \
-           " or character for your marker: "
-      marker = gets.chomp.strip.upcase
-      if marker == 'O'
-        puts "Computer has already chosen 'O'"
-        next
-      end
-      break unless marker.length > 1 || marker.empty?
-      puts "marker must be a single character"
-      wait
-      clear
-    end
-    marker
-  end
-
-  def choose_marker
-    marker = prompt_for_marker_choice
-    human.marker = marker
-  end
-
-  def human_choose_name
-    name = nil
-    loop do
-      puts "Player 1 what is your name: "
-      name = gets.chomp.strip
-      break unless name.empty?
-      puts "Please enter a value."
-      wait
-      clear
-    end
-    clear
-    human.name = name
-  end
-
-  def computer_set_name
-    names = ['R2D2', 'Number 5', 'C-3PO', 'Hal', 'T-86']
-    computer.name = names.sample
   end
 
   def prompt_for_human_move
@@ -323,10 +329,6 @@ class TTTGame
     end
   end
 
-  def clear
-    system 'clear'
-  end
-
   def play_again?
     answer = nil
     loop do
@@ -339,13 +341,13 @@ class TTTGame
   end
 
   def clear_screen_and_display_board
-    clear
+    TTTGame.clear
     display_board
   end
 
   def reset
     board.reset
-    clear
+    TTTGame.clear
     self.current_marker = human.marker
   end
 
