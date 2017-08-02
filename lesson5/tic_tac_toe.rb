@@ -1,3 +1,14 @@
+module Clear
+  def clear
+    system 'clear'
+  end
+end
+
+module Wait
+  def wait
+    system 'sleep 1.5'
+  end
+end
 
 class Board
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9],
@@ -112,6 +123,8 @@ class Square
 end
 
 class Player
+  include Clear
+  include Wait
   attr_accessor :score, :marker, :name
 
   def initialize(marker='X')
@@ -134,8 +147,8 @@ class Human < Player
       end
       break unless marker.length > 1 || marker.empty?
       puts "marker must be a single character"
-      TTTGame.wait
-      TTTGame.clear
+      wait
+      clear
     end
     self.marker = marker
   end
@@ -151,10 +164,10 @@ class Human < Player
       name = gets.chomp.strip
       break unless name.empty?
       puts "Please enter a value."
-      TTTGame.wait
-      TTTGame.clear
+      wait
+      clear
     end
-    TTTGame.clear
+    clear
     self.name = name
   end
 end
@@ -166,6 +179,8 @@ class Computer < Player
 end
 
 class TTTGame
+  include Clear
+  include Wait
   COMPUTER_MARKER = 'O'
 
   attr_reader :board, :human, :computer
@@ -176,14 +191,6 @@ class TTTGame
     @human = Human.new
     @computer = Computer.new(COMPUTER_MARKER)
     @current_marker
-  end
-
-  def self.wait
-    system 'sleep 1.5'
-  end
-
-  def self.clear
-    system 'clear'
   end
 
   def increment_score(marker)
@@ -204,42 +211,58 @@ class TTTGame
     nil
   end
 
-  # rubocop:disable Metrics/MethodLength
-  # rubocop:disable AbcSize
   def play
-    TTTGame.clear
+    pre_game
+    match_loop
+    post_game
+  end
+
+  private
+
+  def pre_game
+    clear
     display_welcome_message
     human.choose_name
     computer.set_name
     human.choose_marker
     self.current_marker = human.marker
+  end
+
+  def place_move_loop
     loop do
-      loop do
-        display_board
-        loop do
-          current_player_moves
-          clear_screen_and_display_board
-          break if board.someone_won? || board.full?
-        end
-        display_round_results
-        TTTGame.wait
-        increment_score(board.winning_marker)
-        break if human.score == 5 || computer.score == 5
-        reset
-      end
+      current_player_moves
+      clear_screen_and_display_board
+      break if board.someone_won? || board.full?
+    end
+  end
+
+  def round_loop
+    loop do
+      display_board
+      place_move_loop
+      display_round_results
+      wait
+      increment_score(board.winning_marker)
+      break if human.score == 5 || computer.score == 5
+      reset
+    end
+  end
+
+  def match_loop
+    loop do
+      round_loop
       display_match_results
       break unless play_again?
       display_play_again_message
       reset
       set_score_back_to_zero
     end
-    display_goodbye_message
-    TTTGame.wait
   end
-  # rubocop:enable Metrics/MethodLength
-  # rubocop:enable AbcSize
 
-  private
+  def post_game
+    display_goodbye_message
+    wait
+  end
 
   def joinor(array, separator=', ', conjunction='or ')
     array.map!(&:to_s)
@@ -341,13 +364,13 @@ class TTTGame
   end
 
   def clear_screen_and_display_board
-    TTTGame.clear
+    clear
     display_board
   end
 
   def reset
     board.reset
-    TTTGame.clear
+    clear
     self.current_marker = human.marker
   end
 
