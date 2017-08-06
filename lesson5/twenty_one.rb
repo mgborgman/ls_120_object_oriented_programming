@@ -8,7 +8,7 @@ class Participant
   end
 
   def total
-    @total = calculate_total
+    @total = assign_total
   end
 
   def stay
@@ -25,56 +25,64 @@ class Participant
 
   def values(value)
     case value
-    when '2'
-      2
-    when '3'
-      3
-    when '4'
-      4
-    when '5'
-      5
-    when '6'
-      6
-    when '7'
-      7
-    when '8'
-      8
-    when '9'
-      9
-    when '10'
+    when '2', '3', '4', '5', '6', '7', '8', '9', '10'
+      value.to_i
+    when 'J', 'Q', 'K'
       10
-    when 'J'
-      10
-    when 'Q'
-      10
-    when 'K'
-      10
-    when 'A'
-      if total <= 21
-        11
-      else
-        1
-      end
     end
   end
 
-  def calculate_total
-    total = 0
+  def separate_aces
     index = 0
+    aces = []
     while index < hand.length
       if hand[index].value == 'A'
-        if total <= 10
-          value = 11
-        else
-          value = 1
-        end
-      else
-        value = values(hand[index].value)
+        aces << hand[index]
+        hand.delete_at(index)
       end
-      total += value
       index += 1
     end
-    self.total = total
+    aces
+  end
+
+  def calculate_total_without_aces
+    total = 0
+    index = 0
+    aces = separate_aces
+    while index < hand.length
+      total += values(hand[index].value)
+      index += 1
+    end
+    return aces, total
+  end
+
+  def add_aces_back_to_hand(aces)
+    aces.each do |card|
+      self.hand << card
+    end
+  end
+
+  def calculate_total_with_aces
+    index = 0
+    aces, total = calculate_total_without_aces
+    unless aces.empty?
+      while index < aces.length
+        value = if total <= 10
+                  11
+                else
+                  1
+                end
+        total += value
+        index += 1
+      end     
+    end
+    add_aces_back_to_hand(aces)
+    #binding.pry
+    total
+  end
+
+  def assign_total
+    calculate_total_with_aces
   end
 end
 
