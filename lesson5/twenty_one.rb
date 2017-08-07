@@ -23,6 +23,10 @@ class Participant
     hand.each(&:to_s)
   end
 
+  def >(other_player)
+    total > other_player.total
+  end
+
   def values(value)
     case value
     when '2', '3', '4', '5', '6', '7', '8', '9', '10'
@@ -33,51 +37,38 @@ class Participant
   end
 
   def separate_aces
-    index = 0
-    aces = []
-    while index < hand.length
-      if hand[index].value == 'A'
-        aces << hand[index]
-        hand.delete_at(index)
-      end
-      index += 1
-    end
-    aces
+    no_aces = hand.dup
+    just_aces = hand.dup
+    no_aces.delete_if { |card| card.value == 'A' }
+    just_aces.delete_if { |card| card.value != 'A' }
+    return just_aces, no_aces
   end
 
   def calculate_total_without_aces
     total = 0
-    index = 0
-    aces = separate_aces
-    while index < hand.length
-      total += values(hand[index].value)
-      index += 1
+    just_aces, no_aces = separate_aces
+    if hand.empty?
+      calculate_total_with_aces
+    else
+      no_aces.each do |card|
+        total += values(card.value)
+      end
     end
-    return aces, total
-  end
-
-  def add_aces_back_to_hand(aces)
-    aces.each do |card|
-      self.hand << card
-    end
+    return total, just_aces
   end
 
   def calculate_total_with_aces
-    index = 0
-    aces, total = calculate_total_without_aces
-    unless aces.empty?
-      while index < aces.length
+    total, just_aces = calculate_total_without_aces
+    unless just_aces.empty?
+      just_aces.each do |_|
         value = if total <= 10
                   11
                 else
                   1
                 end
         total += value
-        index += 1
-      end     
+      end
     end
-    add_aces_back_to_hand(aces)
-    #binding.pry
     total
   end
 
@@ -95,7 +86,7 @@ class Player < Participant
 end
 
 class Dealer < Participant
-  UNKOWN_CARD = """
+  UNKOWN_CARD = %(
     +-----+
     |?    |
     |     |
@@ -103,7 +94,7 @@ class Dealer < Participant
     |     |
     |    ?|
     +-----+
-    """
+)
 
   attr_reader :deck
 
@@ -133,7 +124,6 @@ class Deck
 
   def initialize
     @cards = []
-    @test = 'Hello'
     reset_deck
   end
 
@@ -191,19 +181,23 @@ class Game
   def start
     display_welcome_message
     loop do
-      dealer.deck.deal_hand(player, dealer)
-      dealer.show_hand_initial
-      player.show_hand
-      player_turn
-      wait
-      dealer_turn
-      dealer.show_hand
-      wait
-      display_results
+      main_game_loop
       break unless play_again?
       reset
     end
     display_goodbye_message
+  end
+
+  def main_game_loop
+    dealer.deck.deal_hand(player, dealer)
+    dealer.show_hand_initial
+    player.show_hand
+    player_turn
+    wait
+    dealer_turn
+    dealer.show_hand
+    wait
+    display_results
   end
 
   def display_welcome_message
@@ -274,26 +268,56 @@ class Game
 
   def dealer_turn
     loop do
-      break if dealer.total == 21
       break if dealer.total >= 17
       perform_move_dealer
     end
   end
 
   def determine_winner
-    if player.busted? && dealer.busted?
+    winner = nil
+    loop do
+      winner = check_for_player_busted
+      break unless winner.nil?
+      winner = check_for_closest_to_21_total
+      break
+    end
+    winner
+  end
+
+  def check_for_player_busted
+    if both_busted?
       false
     elsif player.busted?
       dealer
     elsif dealer.busted?
       player
-    elsif player.total == dealer.total
+    end
+  end
+
+  def check_for_closest_to_21_total
+    if totals_are_equal
       false
-    elsif player.total > dealer.total
+    elsif player_has_greater_total
       player
-    elsif dealer.total > player.total
+    elsif dealer_has_greater_total
       dealer
     end
+  end
+
+  def both_busted?
+    player.busted? && dealer.busted?
+  end
+
+  def totals_are_equal
+    player.total == dealer.total
+  end
+
+  def player_has_greater_total
+    player.total > dealer.total
+  end
+
+  def dealer_has_greater_total
+    dealer.total > player.total
   end
 
   def display_results
