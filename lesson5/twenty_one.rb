@@ -23,9 +23,7 @@ class Participant
     hand.each(&:to_s)
   end
 
-  def >(other_player)
-    total > other_player.total
-  end
+  protected
 
   def values(value)
     case value
@@ -187,6 +185,8 @@ class Game
     end
     display_goodbye_message
   end
+
+  private
 
   def main_game_loop
     dealer.deck.deal_hand(player, dealer)
