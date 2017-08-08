@@ -19,8 +19,19 @@ class Participant
     total > 21
   end
 
+  # def show_hand
+  #   binding.pry
+  #   hand.each { |card| puts card }
+  # end
+
   def show_hand
-    hand.each(&:to_s)
+    strings = hand.map { |card| card.to_s.each_line.to_a }
+    first, *rest = *strings
+    side_by_side = first.zip(*rest)
+    side_by_side.each do |row|
+      row.each { |s| print s.chomp }
+      print "\n"
+    end
   end
 
   protected
@@ -50,46 +61,6 @@ class Participant
     end
     total
   end
-
-  # def separate_aces
-  #   no_aces = hand.dup
-  #   just_aces = hand.dup
-  #   no_aces.delete_if { |card| card.value == 'A' }
-  #   just_aces.delete_if { |card| card.value != 'A' }
-  #   return just_aces, no_aces
-  # end
-
-  # def calculate_total_without_aces
-  #   total = 0
-  #   just_aces, no_aces = separate_aces
-  #   if hand.empty?
-  #     calculate_total_with_aces
-  #   else
-  #     no_aces.each do |card|
-  #       total += values(card.value)
-  #     end
-  #   end
-  #   return total, just_aces
-  # end
-
-  # def calculate_total_with_aces
-  #   total, just_aces = calculate_total_without_aces
-  #   unless just_aces.empty?
-  #     just_aces.each do |_|
-  #       value = if total <= 10
-  #                 11
-  #               else
-  #                 1
-  #               end
-  #       total += value
-  #     end
-  #   end
-  #   total
-  # end
-
-  # def assign_total
-  #   calculate_total_with_aces
-  # end
 end
 
 class Player < Participant
@@ -111,10 +82,22 @@ class Dealer < Participant
     +-----+
 )
 
+  def print_hand_initial
+    strings = []
+    strings << hand[0].to_s.each_line.to_a
+    strings << UNKOWN_CARD.to_s.each_line.to_a
+    first, *rest = *strings
+    side_by_side = first.zip(*rest)
+    side_by_side.each do |row|
+      row.each { |s| print s.chomp }
+      print "\n"
+    end
+  end
+
   def show_hand_initial
-    puts "Dealers Hand:"
-    hand[0].to_s
-    puts UNKOWN_CARD
+    puts "Dealers Hand: "
+    print_hand_initial
+    puts "Dealers total is ?"
   end
 
   def show_hand
@@ -168,7 +151,7 @@ class Card
   end
 
   def to_s
-    print """
+    """
     +-----+
     |#{@value}    |
     |     |
@@ -176,7 +159,7 @@ class Card
     |     |
     |    #{@value}|
     +-----+
-    """
+"""
   end
 end
 
@@ -206,7 +189,9 @@ class Game
     player_turn
     wait
     dealer_turn
+    clear
     dealer.show_hand
+    player.show_hand
     wait
     display_results
   end
@@ -234,6 +219,10 @@ class Game
     sleep 1
   end
 
+  def clear
+    system 'clear'
+  end
+
   def reset
     system 'clear'
     @player = Player.new
@@ -257,7 +246,9 @@ class Game
       move = prompt_for_move
       case move
       when 'h'
+        clear
         deck.deal_card_to(player)
+        dealer.show_hand
         player.show_hand
       when 's'
         player.stay
