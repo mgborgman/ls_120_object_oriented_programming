@@ -8,7 +8,7 @@ class Participant
   end
 
   def total
-    @total = assign_total
+    @total = calculate_total
   end
 
   def stay
@@ -31,48 +31,65 @@ class Participant
       value.to_i
     when 'J', 'Q', 'K'
       10
+    when 'A'
+      11
     end
   end
 
-  def separate_aces
-    no_aces = hand.dup
-    just_aces = hand.dup
-    no_aces.delete_if { |card| card.value == 'A' }
-    just_aces.delete_if { |card| card.value != 'A' }
-    return just_aces, no_aces
-  end
-
-  def calculate_total_without_aces
+  def calculate_total
     total = 0
-    just_aces, no_aces = separate_aces
-    if hand.empty?
-      calculate_total_with_aces
-    else
-      no_aces.each do |card|
-        total += values(card.value)
-      end
+    hand.each do |card|
+      total += values(card.value)
     end
-    return total, just_aces
-  end
-
-  def calculate_total_with_aces
-    total, just_aces = calculate_total_without_aces
-    unless just_aces.empty?
-      just_aces.each do |_|
-        value = if total <= 10
-                  11
-                else
-                  1
-                end
-        total += value
+    if total > 21
+      number_of_aces = hand.select { |card| card.value == 'A' }.count
+      number_of_aces.times do
+        total -= 10
+        break if total <= 21
       end
     end
     total
   end
 
-  def assign_total
-    calculate_total_with_aces
-  end
+  # def separate_aces
+  #   no_aces = hand.dup
+  #   just_aces = hand.dup
+  #   no_aces.delete_if { |card| card.value == 'A' }
+  #   just_aces.delete_if { |card| card.value != 'A' }
+  #   return just_aces, no_aces
+  # end
+
+  # def calculate_total_without_aces
+  #   total = 0
+  #   just_aces, no_aces = separate_aces
+  #   if hand.empty?
+  #     calculate_total_with_aces
+  #   else
+  #     no_aces.each do |card|
+  #       total += values(card.value)
+  #     end
+  #   end
+  #   return total, just_aces
+  # end
+
+  # def calculate_total_with_aces
+  #   total, just_aces = calculate_total_without_aces
+  #   unless just_aces.empty?
+  #     just_aces.each do |_|
+  #       value = if total <= 10
+  #                 11
+  #               else
+  #                 1
+  #               end
+  #       total += value
+  #     end
+  #   end
+  #   total
+  # end
+
+  # def assign_total
+  #   calculate_total_with_aces
+  # end
 end
 
 class Player < Participant
@@ -93,13 +110,6 @@ class Dealer < Participant
     |    ?|
     +-----+
 )
-
-  attr_reader :deck
-
-  def initialize
-    @deck = Deck.new
-    super
-  end
 
   def show_hand_initial
     puts "Dealers Hand:"
@@ -137,7 +147,7 @@ class Deck
     end
   end
 
-  def deal_card(player)
+  def deal_card_to(player)
     player.hand << cards.shift
   end
 
@@ -173,6 +183,7 @@ end
 class Game
   attr_reader :player, :dealer, :deck
   def initialize
+    @deck = Deck.new
     reset
   end
 
@@ -189,7 +200,7 @@ class Game
   private
 
   def main_game_loop
-    dealer.deck.deal_hand(player, dealer)
+    deck.deal_hand(player, dealer)
     dealer.show_hand_initial
     player.show_hand
     player_turn
@@ -220,13 +231,14 @@ class Game
   end
 
   def wait
-    system 'sleep 1'
+    sleep 1
   end
 
   def reset
     system 'clear'
     @player = Player.new
     @dealer = Dealer.new
+    @deck = Deck.new
   end
 
   def prompt_for_move
@@ -245,7 +257,7 @@ class Game
       move = prompt_for_move
       case move
       when 'h'
-        dealer.deck.deal_card(player)
+        deck.deal_card_to(player)
         player.show_hand
       when 's'
         player.stay
@@ -255,7 +267,7 @@ class Game
   end
 
   def perform_move_dealer
-    dealer.deck.deal_card(dealer)
+    deck.deal_card_to(dealer)
   end
 
   def player_turn
