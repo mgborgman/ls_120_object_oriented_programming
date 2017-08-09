@@ -66,7 +66,6 @@ class Board
     (1..9).each { |key| squares[key] = Square.new }
   end
 
-  # rubocop:disable Metrics/AbcSize
   def draw
     puts "     |     |"
     puts "  #{squares[1]}  |  #{squares[2]}" \
@@ -83,7 +82,6 @@ class Board
          "  |  #{squares[9]}  "
     puts "     |     |"
   end
-  # rubocop:enable Metrics/AbcSize
 
   def two_identical_markers?(squares, marker)
     markers = squares.select(&:marked?).collect(&:marker)
